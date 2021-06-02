@@ -63,8 +63,19 @@ line:
 	cmp		r11, 0
 	je		points
 
-line_loop:
+	imul	r11, 4
+	sub		rdi, r11
+	sub		rsi, r11
+	
+	mov		r11, rcx
+line_cond:
+	
+	cmp		r11, 0
+	je		points
 
+	movss	xmm0, [zero]
+
+line_loop:
 
 	movss	xmm1, dword [one]	;przypisanie 1
 	movss	xmm3, xmm1
@@ -72,8 +83,8 @@ line_loop:
 
 line_x:
 
-	cvtsi2ss	xmm4, [rdi-4]		;konwersja x0 do floata	
-	cvtsi2ss	xmm5, [rdi] 	;konwersja x1 do floata
+	cvtsi2ss	xmm4, [rdi]		;konwersja x0 do floata	
+	cvtsi2ss	xmm5, [rdi+4] 	;konwersja x1 do floata
 
 	movss	xmm6, xmm4	;x = x0
 	mulss	xmm6, xmm3	;x = x0 * (1 - t) 
@@ -87,8 +98,8 @@ line_x:
 	
 line_y:
 
-	cvtsi2ss	xmm4, [rsi-4]		;konwersja y0 do floata
-	cvtsi2ss	xmm5, [rsi]	;konwersja y1 do floata
+	cvtsi2ss	xmm4, [rsi]		;konwersja y0 do floata
+	cvtsi2ss	xmm5, [rsi+4]	;konwersja y1 do floata
 
 	movss	xmm6, xmm4	;y = y0
 	mulss	xmm6, xmm3	;y = y0 * (1 - t) 
@@ -113,11 +124,19 @@ draw_line:
 
 next_line_points:
 
+
 	addss	xmm0, xmm2	;licznik + t
 	cmpss	xmm1, xmm0, 2	
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		line_loop
+
+check_if_line_cond:
+
+	add		rdi, 4
+	add		rsi, 4
+	dec 	r11
+	jmp		line_cond
 
 points:
 
