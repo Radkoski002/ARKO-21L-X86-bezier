@@ -15,14 +15,7 @@ draw_bezier:
 	push	rbp
 	mov		rbp, rsp	;prolog
 
-	push	rdi ;początek tablicy współrzędnych x
-	push	rsi ;początek tablicy współrzędnych y
-	
-	mov		rax, 0		;wyzeruj rax
-	mov		rbx, 0		;wyzeruj rbx
-
-	mov		r10, rdx		;adres początku bitmapy
-	mov		r11, 0xff000000	;zapis koloru
+	mov		r9, rdx		;adres początku bitmapy
 
 points:
 	
@@ -46,9 +39,12 @@ points:
 
 one_point:
 
+	mov		rax, 0
+	mov		rbx, 0
+
 	mov		ax, [rdi]		;x0
 	mov		bx, [rsi]		;y0
-	jmp		print_core_pixel
+	jmp		print_core_pixels
 
 two_points:
 two_loop:
@@ -93,7 +89,7 @@ draw_from_two_points:
 	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
 	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
 
-	add		rax, r10 	;adres pixela
+	add		rax, r9 	;adres pixela
 
 	mov		[rax], word 0
 	mov		[rax+2], byte 0
@@ -105,14 +101,7 @@ next_two_points:
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		two_loop
-
-	mov		rax, 0
-	mov 	rbx, 0
-
-	mov		ax, [rdi+4]
-	mov		bx, [rsi+4]
-
-	jmp 	print_core_pixel	
+	jmp 	print_core_pixels	
 
 three_points:
 three_loop:
@@ -169,7 +158,7 @@ three_loop:
 	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
 	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
 
-	add		rax, r10 	;adres pixela
+	add		rax, r9 	;adres pixela
 
 	mov		[rax], word 0
 	mov		[rax+2], byte 0	;zapis koloru
@@ -180,13 +169,7 @@ three_loop:
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		three_loop
-
-	mov		rax, 0
-	mov 	rbx, 0
-
-	mov		ax, [rdi+8]		;x[counter]
-	mov		bx, [rsi+8]		;y[counter]
-	jmp		print_core_pixel
+	jmp		print_core_pixels
 
 four_points:
 four_loop:
@@ -265,7 +248,7 @@ four_loop:
 	add		rax, rbx		;pozycja pixela = bajty w rzedzie + x
 	imul	rax, 3			;pierwszy bajt pixela = pozycja pixela * 3
 
-	add		rax, r10 		;adres pixela
+	add		rax, r9 		;adres pixela
 
 	mov		[rax], word 0
 	mov		[rax+2], byte 0	;zapis koloru
@@ -275,13 +258,7 @@ four_loop:
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		four_loop	
-
-	mov		rax, 0
-	mov 	rbx, 0
-
-	mov		ax, [rdi+12]		;x[counter]
-	mov		bx, [rsi+12]		;y[counter]
-	jmp		print_core_pixel
+	jmp		print_core_pixels
 
 five_points:
 five_loop:
@@ -382,7 +359,7 @@ five_loop:
 	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
 	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
 
-	add		rax, r10 	;adres pixela
+	add		rax, r9 	;adres pixela
 
 	mov		[rax], word 0
 	mov		[rax+2], byte 0	;zapis koloru
@@ -392,19 +369,21 @@ five_loop:
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		five_loop	
+	jmp		print_core_pixels
 
-	mov		rax, 0
-	mov 	rbx, 0
-	mov		ax, [rdi+16]		;x[counter]
-	mov		bx, [rsi+16]		;y[counter]
-	jmp		print_core_pixel
+print_core_pixels:
 
-print_core_pixel:
+	mov 	rax, 0
+	mov		rbx, 0
+
+	mov		ax, [rdi]
+	mov		bx, [rsi]
 
 	imul	rbx, 800		;bajty w rzędzie = y * szerokość
 	add		rax, rbx		;pozycja pixela = x + bajty w rzędzie 
 	imul	rax, 3			;pierwszy bajt pixela = pozycja pixela * 3
 
+	mov		r10, r9
 	add		r10, rax
 
 	mov		[r10-3], dword 0 
@@ -419,9 +398,16 @@ print_core_pixel:
 	mov		[r10-2399], dword 0 
 	mov		[r10-2395], byte 0 
 
+	cmp		rcx, 0
+	je		end
+
+	add		rdi, 4 
+	add		rsi, 4 
+	dec		rcx
+	jmp		print_core_pixels
+
+
 end:
-	pop		rsi
-	pop 	rdi
 	mov		rsp, rbp
 	pop		rbp
 	ret
