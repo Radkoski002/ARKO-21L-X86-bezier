@@ -47,37 +47,44 @@ one_point:
 
 two_points:
 
-	movss		xmm0, dword [zero]	;licznik
-	movss		xmm1, dword [t]	;przypisanie 1
-
-	cvtsi2ss xmm4, [rdi] ;load x0
-	cvtsi2ss xmm5, [rdi+4] ; load x1
-	cvtsi2ss xmm6, [rsi] ; load y0
-	cvtsi2ss xmm7, [rsi+4]; load y1
+	movss	xmm0, dword [zero]	;licznik
+	movss	xmm1, dword [one]	;przypisanie 1
+	movss	xmm2, dword [t]		;przypisanie t
 
 two_loop:
+
+	movss	xmm3, xmm1
+	subss	xmm3, xmm0	;(1 - t)
+
 two_points_x:
-	movss xmm3, [one]
-	subss xmm3, xmm0 ; 1-t
 
-	movss xmm8, xmm3 ; (1-t)
-	mulss xmm8, xmm4 ; (1-t) * x0
+	cvtsi2ss	xmm4, [rdi]		;load and convert x0
+	cvtsi2ss	xmm5, [rdi+4] 	;load and convert x1
 
-	movss xmm9, xmm0 ; t
-	mulss xmm9, xmm5 ; t * x1
+	movss	xmm6, xmm4	;x = x0
+	mulss	xmm6, xmm3	;x = x0 * (1 - t) 
 
-	addss xmm8, xmm9
-	cvtss2si rax, xmm8
+	movss 	xmm7, xmm5	;tmp = x1
+	mulss	xmm7, xmm0	;tmp = x1 * t
 
-two_points_y:
-	movss xmm8, xmm3 ; (1-t)
-	mulss xmm8, xmm6 ; (1-t) * y0
+	addss	xmm6, xmm7	;x = x0 * (1 - t) + x1 * t 
 
-	movss xmm9, xmm0 ; t 
-	mulss xmm9, xmm7 ; t * y1
+	cvtss2si	rax, xmm6
 	
-	addss xmm8, xmm9
-	cvtss2si rbx, xmm8
+two_points_y:
+
+	cvtsi2ss	xmm4, [rsi]		;load and convert y0
+	cvtsi2ss	xmm5, [rsi+4]	;load and convert y1
+
+	movss	xmm6, xmm4	;y = y0
+	mulss	xmm6, xmm3	;y = y0 * (1 - t) 
+
+	movss 	xmm7, xmm5	;tmp = y1
+	mulss	xmm7, xmm0	;tmp = y1 * t
+
+	addss	xmm6, xmm7	;y = y0 * (1 - t) + y1 * t 
+
+	cvtss2si	rbx, xmm6
 
 draw_from_two_points:
 
@@ -93,13 +100,20 @@ draw_from_two_points:
 
 
 next_two_points:
-	addss xmm0, xmm1
-	movss xmm3, [one]
-	cmpss xmm3, xmm0, 2	
-	movq rax, xmm3
-	cmp rax, 0
-	je two_loop 
-	jmp end
+	addss	xmm0, xmm2	;licznik + t
+	movss 	xmm3, [one]
+	cmpss	xmm3, xmm0, 2	
+	movq	rax, xmm3
+	cmp		rax, 0
+	je		two_loop
+
+	mov		rax, 0
+	mov 	rbx, 0
+
+	mov		ax, [rdi+4]
+	mov		bx, [rsi+4]
+
+	jmp 	print_core_pixel	
 
 three_points:
 
