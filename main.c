@@ -78,11 +78,7 @@ int main(int argc, char* argv[])
                 case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
 
                         if(counter >= 5)
-                        {
                                 counter = 0;
-                                for(int i = 0 ; i < size; i++)
-                                        bitmap[i] = sourceBitmap[i];
-                        } 
 
                         xPoints[counter] = event.mouse.x;
                         yPoints[counter] = 600 - event.mouse.y;
@@ -100,7 +96,10 @@ int main(int argc, char* argv[])
                                 fputc(bitmap[i], file);
 
                         fclose(file);
-
+                        
+                        for(int i = 0 ; i < size; i++)
+                                bitmap[i] = sourceBitmap[i];
+                        
                         bitmapa = al_load_bitmap("result.bmp");
                         al_draw_bitmap(bitmapa, 0, 0, 0);
                         al_flip_display();
