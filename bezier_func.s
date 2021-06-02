@@ -20,8 +20,6 @@ draw_bezier:
 	mov		r10, rdx		;adres początku bitmapy
 	mov		r11, 0xff000000	;zapis koloru
 
-
-
 points:
 
 	cmp		rcx, 0
@@ -48,11 +46,11 @@ one_point:
 two_points:
 
 	movss	xmm0, dword [zero]	;licznik
-	movss	xmm1, dword [one]	;przypisanie 1
 	movss	xmm2, dword [t]		;przypisanie t
 
 two_loop:
 
+	movss	xmm1, dword [one]	;przypisanie 1
 	movss	xmm3, xmm1
 	subss	xmm3, xmm0	;(1 - t)
 
@@ -94,16 +92,14 @@ draw_from_two_points:
 
 	add	rax, r10 
 
-	mov	[rax], BYTE 0
-	mov	[rax+1], BYTE 0
-	mov	[rax+2], BYTE 0
-
+	mov	[rax], word 0
+	mov	[rax+2], byte 0
 
 next_two_points:
+
 	addss	xmm0, xmm2	;licznik + t
-	movss 	xmm3, [one]
-	cmpss	xmm3, xmm0, 2	
-	movq	rax, xmm3
+	cmpss	xmm1, xmm0, 2	
+	movq	rax, xmm1
 	cmp		rax, 0
 	je		two_loop
 
@@ -141,17 +137,17 @@ print_core_pixel:
 
 	add		r10, rax
 
-	mov		[r10-3], r11d
-	mov		[r10], r11d
-	mov		[r10+3], r11d
+	mov		[r10-3], dword 0 
+	mov		[r10+1], dword 0 
+	mov		[r10+5], byte 0 
 	
-	mov		[r10+2397], r11d 
-	mov		[r10+2400], r11d 
-	mov		[r10+2403], r11d 
+	mov		[r10+2397], dword 0 
+	mov		[r10+2401], dword 0 
+	mov		[r10+2405], byte 0 
 
-	mov		[r10-2403], r11d 
-	mov		[r10-2400], r11d 
-	mov		[r10-2397], r11d 
+	mov		[r10-2403], dword 0  
+	mov		[r10-2399], dword 0 
+	mov		[r10-2395], byte 0 
 
 end:
 	pop		rsi
