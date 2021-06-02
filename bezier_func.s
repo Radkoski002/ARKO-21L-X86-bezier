@@ -16,14 +16,120 @@ draw_bezier:
 	mov		rbp, rsp	;prolog
 
 	mov		r9, rdx		;adres początku bitmapy
+	mov		r11, rcx	;backup licznika
 
-points:
-	
 	movss	xmm0, [zero]	;licznik
 	movss	xmm2, [t]		;przypisanie t
 
+print_core_pixels:
+
+	mov 	rax, 0
+	mov		rbx, 0
+
+	mov		ax, [rdi]
+	mov		bx, [rsi]
+
+	imul	rbx, 800		;bajty w rzędzie = y * szerokość
+	add		rax, rbx		;pozycja pixela = x + bajty w rzędzie 
+	imul	rax, 3			;pierwszy bajt pixela = pozycja pixela * 3
+
+	mov		r10, r9
+	add		r10, rax
+
+	mov		[r10-3], dword 0 
+	mov		[r10+1], dword 0 
+	mov		[r10+5], byte 0 
+	
+	mov		[r10+2397], dword 0 
+	mov		[r10+2401], dword 0 
+	mov		[r10+2405], byte 0 
+
+	mov		[r10-2403], dword 0  
+	mov		[r10-2399], dword 0 
+	mov		[r10-2395], byte 0 
+
+	cmp		r11, 0
+	je		line	
+
+	dec		r11
+
+	add		rdi, 4 
+	add		rsi, 4 
+	jmp		print_core_pixels
+
+line:
+
+	mov		r11, rcx
+	cmp		r11, 0
+	je		points
+
+line_loop:
+
+
+	movss	xmm1, dword [one]	;przypisanie 1
+	movss	xmm3, xmm1
+	subss	xmm3, xmm0	;przypisanie (1 - t)
+
+line_x:
+
+	cvtsi2ss	xmm4, [rdi-4]		;konwersja x0 do floata	
+	cvtsi2ss	xmm5, [rdi] 	;konwersja x1 do floata
+
+	movss	xmm6, xmm4	;x = x0
+	mulss	xmm6, xmm3	;x = x0 * (1 - t) 
+
+	movss 	xmm7, xmm5	;tmp = x1
+	mulss	xmm7, xmm0	;tmp = x1 * t
+
+	addss	xmm6, xmm7	;x = x0 * (1 - t) + x1 * t 
+
+	cvtss2si	rax, xmm6	;konwersja x do inta
+	
+line_y:
+
+	cvtsi2ss	xmm4, [rsi-4]		;konwersja y0 do floata
+	cvtsi2ss	xmm5, [rsi]	;konwersja y1 do floata
+
+	movss	xmm6, xmm4	;y = y0
+	mulss	xmm6, xmm3	;y = y0 * (1 - t) 
+
+	movss 	xmm7, xmm5	;tmp = y1
+	mulss	xmm7, xmm0	;tmp = y1 * t
+
+	addss	xmm6, xmm7	;y = y0 * (1 - t) + y1 * t 
+
+	cvtss2si	rbx, xmm6	;konwersja y do inta
+
+draw_line:
+
+	imul	rbx, 800	;bajty w rzędzie = y * szerokość
+	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
+	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
+
+	add		rax, r9 	;adres pixela
+
+	mov		[rax], word 0
+	mov		[rax+2], byte 255
+
+next_line_points:
+
+	addss	xmm0, xmm2	;licznik + t
+	cmpss	xmm1, xmm0, 2	
+	movq	rax, xmm1
+	cmp		rax, 0
+	je		line_loop
+
+points:
+
+	mov		r11, rcx
+	imul	r11, 4
+	sub		rdi, r11
+	sub		rsi, r11
+
+	movss	xmm0, [zero]	;licznik
+
 	cmp		rcx, 0
-	je		one_point
+	je		end	
 
 	cmp		rcx, 1
 	je		two_points
@@ -36,15 +142,6 @@ points:
 
 	cmp		rcx, 4
 	je		five_points
-
-one_point:
-
-	mov		rax, 0
-	mov		rbx, 0
-
-	mov		ax, [rdi]		;x0
-	mov		bx, [rsi]		;y0
-	jmp		print_core_pixels
 
 two_points:
 two_loop:
@@ -101,7 +198,7 @@ next_two_points:
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		two_loop
-	jmp 	print_core_pixels	
+	jmp 	end	
 
 three_points:
 three_loop:
@@ -169,7 +266,7 @@ three_loop:
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		three_loop
-	jmp		print_core_pixels
+	jmp		end
 
 four_points:
 four_loop:
@@ -258,7 +355,7 @@ four_loop:
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		four_loop	
-	jmp		print_core_pixels
+	jmp		end
 
 five_points:
 five_loop:
@@ -369,42 +466,8 @@ five_loop:
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		five_loop	
-	jmp		print_core_pixels
+	jmp		end
 
-print_core_pixels:
-
-	mov 	rax, 0
-	mov		rbx, 0
-
-	mov		ax, [rdi]
-	mov		bx, [rsi]
-
-	imul	rbx, 800		;bajty w rzędzie = y * szerokość
-	add		rax, rbx		;pozycja pixela = x + bajty w rzędzie 
-	imul	rax, 3			;pierwszy bajt pixela = pozycja pixela * 3
-
-	mov		r10, r9
-	add		r10, rax
-
-	mov		[r10-3], dword 0 
-	mov		[r10+1], dword 0 
-	mov		[r10+5], byte 0 
-	
-	mov		[r10+2397], dword 0 
-	mov		[r10+2401], dword 0 
-	mov		[r10+2405], byte 0 
-
-	mov		[r10-2403], dword 0  
-	mov		[r10-2399], dword 0 
-	mov		[r10-2395], byte 0 
-
-	cmp		rcx, 0
-	je		end
-
-	add		rdi, 4 
-	add		rsi, 4 
-	dec		rcx
-	jmp		print_core_pixels
 
 
 end:
