@@ -18,11 +18,11 @@ int main(int argc, char* argv[])
                 header[i] = fgetc(file);
 
         int offset = header[11] * 0x100 + header[10];
-        int width = header[19] * 0x100 + header[18];
-        int height = header[23] * 0x100 + header[22];
+        //int width = header[19] * 0x100 + header[18];
+        //int height = header[23] * 0x100 + header[22];
         long long size = header[36] * 0x10000 + header[35] * 0x100 + header[34];
 
-        int padding = (width * 3 + 3) & ~3;
+        //int padding = (width * 3 + 3) & ~3;
 
         unsigned char extraSpace [offset - 54];
         unsigned char sourceBitmap[size];
