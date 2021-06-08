@@ -151,25 +151,22 @@ points:
 	je		end	
 
 	cmp		rcx, 1
-	je		two_points
+	je		two_loop
 
 	cmp		rcx, 2
-	je		three_points
+	je		three_loop
 
 	cmp		rcx, 3
-	je		four_points
+	je		four_loop
 
 	cmp		rcx, 4
-	je		five_points
+	je		five_loop
 
-two_points:
 two_loop:
 
 	movss	xmm1, dword [one]	;przypisanie 1
 	movss	xmm3, xmm1
 	subss	xmm3, xmm0	;przypisanie (1 - t)
-
-two_points_x:
 
 	cvtsi2ss	xmm4, [rdi]		;konwersja x0 do floata	
 	cvtsi2ss	xmm5, [rdi+4] 	;konwersja x1 do floata
@@ -184,8 +181,6 @@ two_points_x:
 
 	cvtss2si	rax, xmm6	;konwersja x do inta
 	
-two_points_y:
-
 	cvtsi2ss	xmm4, [rsi]		;konwersja y0 do floata
 	cvtsi2ss	xmm5, [rsi+4]	;konwersja y1 do floata
 
@@ -199,8 +194,6 @@ two_points_y:
 
 	cvtss2si	rbx, xmm6	;konwersja y do inta
 
-draw_from_two_points:
-
 	imul	rbx, 800	;bajty w rzędzie = y * szerokość
 	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
 	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
@@ -210,16 +203,14 @@ draw_from_two_points:
 	mov		[rax], word 0
 	mov		[rax+2], byte 0
 
-next_two_points:
-
 	addss	xmm0, xmm2	;licznik + t
-	cmpss	xmm1, xmm0, 2	
-	movq	rax, xmm1
-	cmp		rax, 0
+	addss	xmm0, xmm2		;licznik + t
+	cmpss	xmm1, xmm0, 2	;sprawdzenie czy 1 < licznika (jeśli prawda ustaw xmm1 na 1 jeśli fałsz ustaw na 0)	
+	cvtss2si	rax, xmm1	;ustaw rax na wartość xmm1
+	cmp		rax, 0			;porównaj rax z 0 (jeśli prawda skocz na początek pętli)
 	je		two_loop
 	jmp 	end	
 
-three_points:
 three_loop:
 
 	movss	xmm1, [one]		;przypisanie 1
@@ -281,13 +272,13 @@ three_loop:
 
 
 	addss	xmm0, xmm2	;licznik + t
-	cmpss	xmm1, xmm0, 2	
-	movq	rax, xmm1
-	cmp		rax, 0
-	je		three_loop
+	addss	xmm0, xmm2		;licznik + t
+	cmpss	xmm1, xmm0, 2	;sprawdzenie czy 1 < licznika (jeśli prawda ustaw xmm1 na 1 jeśli fałsz ustaw na 0)	
+	cvtss2si	rax, xmm1	;ustaw rax na wartość xmm1
+	cmp		rax, 0			;porównaj rax z 0 (jeśli prawda skocz na początek pętli)
+	je 		three_loop
 	jmp		end
 
-four_points:
 four_loop:
 
 	movss	xmm1, [one]		;przypisanie 1
@@ -370,13 +361,13 @@ four_loop:
 	mov		[rax+2], byte 0	;zapis koloru
 
 	addss	xmm0, xmm2		;licznik + t
-	cmpss	xmm1, xmm0, 2	
-	movq	rax, xmm1
-	cmp		rax, 0
-	je		four_loop	
+	addss	xmm0, xmm2		;licznik + t
+	cmpss	xmm1, xmm0, 2	;sprawdzenie czy 1 < licznika (jeśli prawda ustaw xmm1 na 1 jeśli fałsz ustaw na 0)	
+	cvtss2si	rax, xmm1	;ustaw rax na wartość xmm1
+	cmp		rax, 0			;porównaj rax z 0 (jeśli prawda skocz na początek pętli)
+	je 		four_loop
 	jmp		end
 
-five_points:
 five_loop:
 
 	movss	xmm1, [one]		;przypisanie 1
@@ -480,14 +471,11 @@ five_loop:
 	mov		[rax], word 0
 	mov		[rax+2], byte 0	;zapis koloru
 
-	addss	xmm0, xmm2	;licznik + t
-	cmpss	xmm1, xmm0, 2	
-	movq	rax, xmm1
-	cmp		rax, 0
+	addss	xmm0, xmm2		;licznik + t
+	cmpss	xmm1, xmm0, 2	;sprawdzenie czy 1 < licznika (jeśli prawda ustaw xmm1 na 1 jeśli fałsz ustaw na 0)	
+	cvtss2si	rax, xmm1	;ustaw rax na wartość xmm1
+	cmp		rax, 0			;porównaj rax z 0 (jeśli prawda skocz na początek pętli)
 	je		five_loop	
-	jmp		end
-
-
 
 end:
 	mov		rsp, rbp
