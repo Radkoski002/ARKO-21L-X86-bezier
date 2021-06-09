@@ -19,7 +19,7 @@ draw_bezier:
 	mov		r11, rcx	;backup licznika
 
 	movss	xmm0, [zero]	;licznik
-	movss	xmm2, [t]		;przypisanie t
+	movss	xmm2, [t] 
 
 print_core_pixels:
 
@@ -146,6 +146,9 @@ points:
 	sub		rsi, r11
 
 	movss	xmm0, [zero]	;licznik
+	movss	xmm2, [one]		
+	cvtsi2ss	xmm1, [r8]
+	divss	xmm2, xmm1 
 
 	cmp		rcx, 0
 	je		end	

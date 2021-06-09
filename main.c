@@ -1,12 +1,18 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_native_dialog.h>
 #include "head.h"
 
 
-int main(int argc, char* argv[])
+int main(int argc, int* argv[])
 {
+	int inputT = 100000;
+	if(argc >= 2)
+		inputT = atoi(argv[1]);
+
+
 	unsigned char header[54];
 
 	FILE * file;
@@ -16,11 +22,12 @@ int main(int argc, char* argv[])
 		header[i] = fgetc(file);
 
 	int offset = header[11] * 0x100 + header[10];
-	//int width = header[19] * 0x100 + header[18];
-	//int height = header[23] * 0x100 + header[22];
+	int width = header[19] * 0x100 + header[18];
+	int height = header[23] * 0x100 + header[22];
 	long long size = header[36] * 0x10000 + header[35] * 0x100 + header[34];
+	int bytesPerPixel = header[28] / 8;
 
-	//int padding = (width * 3 + 3) & ~3;
+	int padding = (width * bytesPerPixel + 3) & ~3;
 
 	unsigned char extraSpace [offset - 54];
 	unsigned char sourceBitmap[size];
@@ -49,7 +56,7 @@ int main(int argc, char* argv[])
 	
 	bitmapa = al_load_bitmap("source.bmp");
 
-	display = al_create_display(800, 600);
+	display = al_create_display(width, height);
 	eventQueue = al_create_event_queue();
 	al_set_target_backbuffer(display);
 
@@ -62,6 +69,7 @@ int main(int argc, char* argv[])
 	int xPoints[5];
 	int yPoints[5];
 	int counter = 0;
+	int data[3] = {inputT, padding, bytesPerPixel};
 	while(true)
 	{
 		ALLEGRO_EVENT event;
@@ -80,7 +88,7 @@ int main(int argc, char* argv[])
 			xPoints[counter] = event.mouse.x;
 			yPoints[counter] = 600 - event.mouse.y;
 
-			draw_bezier(xPoints, yPoints, bitmap, counter);
+			draw_bezier(xPoints, yPoints, bitmap, counter, data);
 
 			file = fopen("result.bmp", "wb");
 			for(int i = 0; i < 54; i++)
