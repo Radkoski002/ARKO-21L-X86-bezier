@@ -1,3 +1,31 @@
+;Projekt x86 - ARKO - Radosław Kostrzewski
+;Temat: Rysowanie 5-punktowej krzywej beziera
+;Znaczenie rejestrów:
+
+;Rejestry stałoprzecinkowe:
+;rax - stałoprzecinkowe x
+;rbx - stałoprzecinkowe y
+;rcx - liczba punktów
+;r9 - adres początku bitmapy
+;r10 - adres pixela
+;r11 - kopia rcx przydatna w kilku funkcjach jako licznik
+;r12 - ilość bajtów w rzędzie
+;r13 - ilość bajtów w pixelu
+
+;Rejestry zmiennoprzecinowe:
+;xmm0 - licznik dla funkcji zmiennoprzecinkowej
+;xmm1 - stała jedynka dla funcki zmiennoprzecinkowej
+;xmm2 - współczynnik t we wzorze na krzywą beziera
+;xmm3 - (1 - t) potrzebne do wzoru na krzywą beziera
+;xmm4 - xmm10 - zmienne zależne od funkcji (podane punkty, wynik, zmienna tymczasowa potrzebna do wyliczeń)
+
+;Zmienne przekazywane do rejestrów:
+;rdi - tablica zawierająca współrzędne x
+;rsi - tablica zawierająca współrzędne y
+;rdx - tablica pixeli
+;rcx - liczba podanych punktów
+;r8 - tablica zawierająca resztę potrzebnych danych (współczynnik t, ilość bajtów w rzędzie, ilość bajtów w pixelu)
+
 	section .data
 t: dd 0.00001
 zero: dd 0.0	
@@ -21,17 +49,24 @@ draw_bezier:
 	movss	xmm0, [zero]	;licznik
 	movss	xmm2, [t] 
 
+	mov		r12, 0
+	mov		r13, 0
+
+	mov		r12w, [r8+4]	;ilość bajtów w rzędzie
+	mov		r13w, [r8+8]	;ilość bajtów na pixel
+
 print_core_pixels:
 
 	mov 	rax, 0
 	mov		rbx, 0
 
+
 	mov		ax, [rdi]
 	mov		bx, [rsi]
 
-	imul	rbx, 800		;bajty w rzędzie = y * szerokość
+	imul	rbx, r12		;wynikowe y = y * ilość bajtów w rzędzie 
+	imul	rax, r13 		;ilość bajtów w x = x * 3	
 	add		rax, rbx		;pozycja pixela = x + bajty w rzędzie 
-	imul	rax, 3			;pierwszy bajt pixela = pozycja pixela * 3
 
 	mov		r10, r9
 	add		r10, rax
@@ -81,8 +116,6 @@ line_loop:
 	movss	xmm3, xmm1
 	subss	xmm3, xmm0	;przypisanie (1 - t)
 
-line_x:
-
 	cvtsi2ss	xmm4, [rdi]		;konwersja x0 do floata	
 	cvtsi2ss	xmm5, [rdi+4] 	;konwersja x1 do floata
 
@@ -96,8 +129,6 @@ line_x:
 
 	cvtss2si	rax, xmm6	;konwersja x do inta
 	
-line_y:
-
 	cvtsi2ss	xmm4, [rsi]		;konwersja y0 do floata
 	cvtsi2ss	xmm5, [rsi+4]	;konwersja y1 do floata
 
@@ -111,27 +142,20 @@ line_y:
 
 	cvtss2si	rbx, xmm6	;konwersja y do inta
 
-draw_line:
-
-	imul	rbx, 800	;bajty w rzędzie = y * szerokość
+	imul	rbx, r12	;bajty w rzędzie = y * szerokość
+	imul	rax, r13		;pierwszy bajt pixela = pozycja pixela * 3
 	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
-	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
 
 	add		rax, r9 	;adres pixela
 
 	mov		[rax], word 0
 	mov		[rax+2], byte 255
 
-next_line_points:
-
-
 	addss	xmm0, xmm2	;licznik + t
 	cmpss	xmm1, xmm0, 2	
 	movq	rax, xmm1
 	cmp		rax, 0
 	je		line_loop
-
-check_if_line_cond:
 
 	add		rdi, 4
 	add		rsi, 4
@@ -197,9 +221,9 @@ two_loop:
 
 	cvtss2si	rbx, xmm6	;konwersja y do inta
 
-	imul	rbx, 800	;bajty w rzędzie = y * szerokość
+	imul	rbx, r12	;bajty w rzędzie = y * szerokość
+	imul	rax, r13		;pierwszy bajt pixela = pozycja pixela * 3
 	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
-	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
 
 	add		rax, r9 	;adres pixela
 
@@ -264,9 +288,9 @@ three_loop:
 
 	cvtss2si	rbx, xmm7	;konwersja y do inta
 	
-	imul	rbx, 800	;bajty w rzędzie = y * szerokość
+	imul	rbx, r12	;bajty w rzędzie = y * szerokość
+	imul	rax, r13		;pierwszy bajt pixela = pozycja pixela * 3
 	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
-	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
 
 	add		rax, r9 	;adres pixela
 
@@ -354,9 +378,9 @@ four_loop:
 
 	cvtss2si rbx, xmm8		;konwersja y do inta
 
-	imul	rbx, 800		;bajty w rzędzie = y * szerokość
-	add		rax, rbx		;pozycja pixela = bajty w rzedzie + x
-	imul	rax, 3			;pierwszy bajt pixela = pozycja pixela * 3
+	imul	rbx, r12	;bajty w rzędzie = y * szerokość
+	imul	rax, r13		;pierwszy bajt pixela = pozycja pixela * 3
+	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
 
 	add		rax, r9 		;adres pixela
 
@@ -465,9 +489,9 @@ five_loop:
 
 	cvtss2si	rbx, xmm9	;konwersja y do inta
 
-	imul	rbx, 800	;bajty w rzędzie = y * szerokość
+	imul	rbx, r12	;bajty w rzędzie = y * szerokość
+	imul	rax, r13		;pierwszy bajt pixela = pozycja pixela * 3
 	add		rax, rbx	;pozycja pixela = bajty w rzedzie + x
-	imul	rax, 3		;pierwszy bajt pixela = pozycja pixela * 3
 
 	add		rax, r9 	;adres pixela
 

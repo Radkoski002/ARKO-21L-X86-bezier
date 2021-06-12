@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -m64 -no-pie 
-LIB = -lallegro -lallegro_dialog -lallegro_image -lallegro_primitives -lm
+LIB = -lallegro -lallegro_dialog -lallegro_image 
 
 all: main.o bezier_func.o
 	$(CC) $(CFLAGS) main.o bezier_func.o -o bezier $(LIB) 

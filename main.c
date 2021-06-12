@@ -6,7 +6,7 @@
 #include "head.h"
 
 
-int main(int argc, int* argv[])
+int main(int argc, char* argv[])
 {
 	int inputT = 100000;
 	if(argc >= 2)
@@ -86,7 +86,7 @@ int main(int argc, int* argv[])
 				counter = 0;
 
 			xPoints[counter] = event.mouse.x;
-			yPoints[counter] = 600 - event.mouse.y;
+			yPoints[counter] = height - event.mouse.y;
 
 			draw_bezier(xPoints, yPoints, bitmap, counter, data);
 
