@@ -47,13 +47,13 @@ print_core_pixels:
 	mov		[r10+1], dword 0 
 	mov		[r10+5], byte 0 
 	
-	mov		[r10+2397], dword 0 
-	mov		[r10+2401], dword 0 
-	mov		[r10+2405], byte 0 
+	mov		[r10+2997], dword 0 
+	mov		[r10+3001], dword 0 
+	mov		[r10+3005], byte 0 
 
-	mov		[r10-2403], dword 0  
-	mov		[r10-2399], dword 0 
-	mov		[r10-2395], byte 0 
+	mov		[r10-3003], dword 0  
+	mov		[r10-2999], dword 0 
+	mov		[r10-2995], byte 0 
 
 	cmp		r11, 0
 	je		line	
